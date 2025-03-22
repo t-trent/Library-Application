@@ -1,1 +1,3 @@
-# CMPT354_miniproject
+# Library Database Application
+
+## CMPT354 - Database Systems I
