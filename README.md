@@ -12,8 +12,8 @@ This project is a simple web application built using Flask, Python, and SQLite.
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/flask-library-app.git
-   cd flask-library-app
+   git clone https://github.com/t-trent/CMPT-354-Mini-Project
+   cd CMPT-354-Mini-Project
    ```
 
 2. **Set up a virtual environment (optional but recommended):**
