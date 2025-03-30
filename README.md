@@ -16,21 +16,7 @@ This project is a simple web application built using Flask, Python, and SQLite.
    cd CMPT-354-Mini-Project
    ```
 
-2. **Set up a virtual environment (optional but recommended):**
-
-   On macOS and Linux:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-   On Windows:
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. **Install Flask:**
+2. **Install Flask:**
 
    ```bash
    pip install flask
