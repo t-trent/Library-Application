@@ -1,0 +1,47 @@
+<!-- templates/register_event.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register for an Event</title>
+</head>
+<body>
+  <h1>Register for an Event</h1>
+  
+  {% if message %}
+    <div class="message">
+      <p>{{ message }}</p>
+    </div>
+  {% endif %}
+  
+  <form method="POST" action="{{ url_for('register_event') }}">
+    <div>
+      <label for="event_id">Select Event:</label>
+      <select id="event_id" name="event_id" required>
+        <option value=""> </option>
+        {% for event in events %}
+          <option value="{{ event['event_id'] }}">
+            {{ event['name'] }} (ID: {{ event['event_id'] }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div>
+      <label for="person_id">Select Person:</label>
+      <select id="person_id" name="person_id" required>
+        <option value=""> </option>
+        {% for person in people %}
+          <option value="{{ person['person_id'] }}">
+            {{ person['name'] }} (ID: {{ person['person_id'] }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <button type="submit">Register</button>
+  </form>
+  
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

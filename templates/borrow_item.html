@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Borrow an Item</title>
+</head>
+<body>
+  <h1>Borrow an Item</h1>
+  
+  {% if success_message %}
+    <div class="message">
+      <p>{{ success_message }}</p>
+    </div>
+  {% endif %}
+  
+  <form method="POST" action="{{ url_for('borrow_item') }}">
+    <div>
+      <label for="item_id">Choose an Item:</label>
+      <select id="item_id" name="item_id" required>
+        <option value=""> </option>
+        {% for item in available_items %}
+          <option value="{{ item['item_id'] }}">
+            {{ item['title'] }} ({{ item['item_type'] }}) [ID: {{ item['item_id'] }}]
+          </option>
+        {% endfor %}
+      </select>      
+    </div>
+    
+    <div>
+      <label for="person_id">Borrower:</label>
+      <select id="person_id" name="person_id" required>
+        <option value=""> </option>
+        {% for person in people %}
+          <option value="{{ person['person_id'] }}">
+            {{ person['name'] }} [ID: {{ person['person_id'] }}]
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div>
+      <label for="personnel_id">Librarian (Personnel):</label>
+      <select id="personnel_id" name="personnel_id" required>
+        <option value=""> </option>
+        {% for librarian in librarians %}
+          <option value="{{ librarian['person_id'] }}">
+            {{ librarian['name'] }} [ID: {{ librarian['person_id'] }}] - {{ librarian['role'] }}
+          </option>
+        {% endfor %}
+      </select>
+      
+    </div>
+    
+    <div>
+      <label for="borrow_date">Borrow Date:</label>
+      <input type="date" id="borrow_date" name="borrow_date" required>
+    </div>
+    
+    <button type="submit">Borrow</button>
+  </form>
+  
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

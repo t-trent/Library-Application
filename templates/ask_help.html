@@ -1,0 +1,21 @@
+<!-- templates/ask_help.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ask for Help</title>
+</head>
+<body>
+  <h1>Ask for Help from a Librarian</h1>
+  <form method="POST">
+    <label for="person_id">Your Person ID:</label>
+    <input type="number" id="person_id" name="person_id" required><br>
+
+    <label for="question">Your Question:</label><br>
+    <textarea id="question" name="question" rows="4" cols="50" required></textarea><br>
+
+    <button type="submit">Submit Request</button>
+  </form>
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

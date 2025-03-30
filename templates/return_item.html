@@ -1,0 +1,40 @@
+<!-- templates/return_item.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Return an Item</title>
+</head>
+<body>
+  <h1>Return an Item</h1>
+
+  {% if success_message %}
+    <div class="message">
+      <p>{{ success_message }}</p>
+    </div>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('return_item') }}">
+    <div>
+      <label for="borrowing_id">Choose Borrowing:</label>
+      <select id="borrowing_id" name="borrowing_id" required>
+        <option value=""> </option>
+        {% for borrowing in active_borrowings %}
+          <option value="{{ borrowing['borrowing_id'] }}">
+            Borrowing ID: {{ borrowing['borrowing_id'] }} -
+            Item ID: {{ borrowing['item_id'] }} -
+            Borrow Date: {{ borrowing['borrow_date'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="return_date">Return Date:</label>
+      <input type="date" id="return_date" name="return_date" required>
+    </div>
+    <button type="submit">Return</button>
+  </form>
+  
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

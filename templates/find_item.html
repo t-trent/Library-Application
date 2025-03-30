@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Find an Item</title>
+</head>
+<body>
+  <h1>Find an Item</h1>
+  
+  <!-- Search Form -->
+  <form method="GET" action="{{ url_for('find_item') }}">
+    <label for="search_term">Search by Title:</label>
+    <input type="text" id="search_term" name="search_term" value="{{ search_term|default('') }}">
+    <!-- Keep current sort/filter values when performing a search -->
+    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+    <input type="hidden" name="filter_type" value="{{ filter_type }}">
+    <button type="submit">Search</button>
+  </form>
+  
+  <!-- Sort and Filter Form -->
+  <form method="GET" action="{{ url_for('find_item') }}" id="sort-filter-form">
+    <!-- Carry over the current search term -->
+    <input type="hidden" name="search_term" value="{{ search_term|default('') }}">
+    
+    <label for="sort_by">Sort by:</label>
+    <select id="sort_by" name="sort_by" onchange="document.getElementById('sort-filter-form').submit();">
+      <option value="id" {% if sort_by == 'id' %}selected{% endif %}>ID</option>
+      <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title</option>
+      <option value="type" {% if sort_by == 'type' %}selected{% endif %}>Type</option>
+    </select>
+    
+    <label for="filter_type">Filter by Type:</label>
+    <select id="filter_type" name="filter_type" onchange="document.getElementById('sort-filter-form').submit();">
+      <option value="" {% if filter_type == '' %}selected{% endif %}>All</option>
+      {% for type in item_types %}
+        <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  
+  <!-- Display Available Items -->
+  <h2>Available Items</h2>
+  {% if available_items|length == 0 %}
+    <p>No available items found.</p>
+  {% else %}
+    <ul>
+      {% for item in available_items %}
+        <li>{{ item['title'] }} ({{ item['item_type'] }}) [ID: {{ item['item_id'] }}]</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  
+  <!-- Display Unavailable Items -->
+  <h2>Unavailable Items</h2>
+  {% if unavailable_items|length == 0 %}
+    <p>No unavailable items found.</p>
+  {% else %}
+    <ul>
+      {% for item in unavailable_items %}
+      <li>{{ item['title'] }} ({{ item['item_type'] }}) [ID: {{ item['item_id'] }}]</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!-- templates/volunteer.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Volunteer for the Library</title>
+</head>
+<body>
+  <h1>Volunteer for the Library</h1>
+  
+  {% if message %}
+    <div class="message">
+      <p>{{ message }}</p>
+    </div>
+  {% endif %}
+  
+  <form method="POST" action="{{ url_for('volunteer') }}">
+    <div>
+      <label for="person_id">Select Your Person:</label>
+      <select id="person_id" name="person_id" required>
+        <option value=""> </option>
+        {% for person in people %}
+          <option value="{{ person['person_id'] }}">
+            {{ person['name'] }} (ID: {{ person['person_id'] }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <button type="submit">Volunteer</button>
+  </form>
+  
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>
