@@ -1,24 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>View Borrowings</title>
-  <style>
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
-  </style>
-</head>
-<body>
-  <h1>View Borrowings</h1>
+{% extends "base.html" %}
+
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+  <h2>View Borrowings & Fines</h2>
 
   <form method="GET" action="{{ url_for('view_borrowings') }}" class="controls-form" id="controlsForm"> 
+    <div>
     <label for="filter_status">Show:</label>
     <select name="filter_status" id="filter_status">
       <option value="all" {% if current_filter_status == 'all' %}selected{% endif %}>All Borrowings</option>
       <option value="returned" {% if current_filter_status == 'returned' %}selected{% endif %}>Returned Only</option>
       <option value="not_returned" {% if current_filter_status == 'not_returned' %}selected{% endif %}>Not Returned Only</option>
     </select>
+    </div>
 
+    <div>
     <label for="filter_fines">Fine Filter:</label>
     <select name="filter_fines" id="filter_fines">
       <option value="all" {% if current_filter_fines == 'all' %}selected{% endif %}>All Borrowings</option>
@@ -26,7 +23,9 @@
       <option value="unpaid_fines" {% if current_filter_fines == 'unpaid_fines' %}selected{% endif %}>Unpaid Fines</option>
       <option value="paid_fines" {% if current_filter_fines == 'paid_fines' %}selected{% endif %}>Paid Fines</option>
     </select>
+    </div>
 
+    <div>
     <label for="sort_by">Sort by:</label>
     <select name="sort_by" id="sort_by">
       {% for key, display_text in sortable_options.items() %}
@@ -35,12 +34,15 @@
         </option>
       {% endfor %}
     </select>
+  </div>
 
+    <div>
     <label for="sort_order">Order:</label>
     <select name="sort_order" id="sort_order">
       <option value="asc" {% if current_sort_order == 'asc' %}selected{% endif %}>Ascending</option>
       <option value="desc" {% if current_sort_order == 'desc' %}selected{% endif %}>Descending</option>
     </select>
+  </div>
   </form>
 
   {% if borrowings|length == 0 %}
@@ -81,14 +83,29 @@
                 <ul>
                   {% for fine in fines_list %}
                     {% set parts = fine.split('|') %}
-                    {% if parts|length >= 3 %} 
+                    {% if parts|length >= 3 %}
+                      {% set amount = parts[1]|float %}
                       {% set paid_text = 'Yes' if parts[2]|trim == '1' else 'No' %}
+                      <li> 
+                        <strong>Amount:</strong> ${{ "%.2f"|format(amount) }}, 
+                        <strong>Paid:</strong> {{ paid_text }},
+                        <strong>ID:</strong> {{ parts[0] }}
+                      </li>
                       <li>
-                        ID: {{ parts[0] }}, Amount: {{ parts[1] }}, Paid: {{ paid_text }}
+                        <strong>Reason:</strong> 
+                        {% if amount == 5 %}
+                          Late return, less than 16 days after due date.
+                        {% elif amount == 15 %}
+                          Late return, more than 16 days after due date.
+                        {% elif amount == 50 %}
+                          Damaged item.
+                        {% else %}
+                          Unknown.
+                        {% endif %}
                       </li>
                     {% endif %}
                   {% endfor %}
-                </ul>
+                </ul>                
               {% else %}
                 None
               {% endif %}
@@ -97,25 +114,23 @@
         {% endfor %}
       </tbody>
     </table>
+    <script>
+      const controlsForm = document.getElementById('controlsForm');
+      const filterStatusSelect = document.getElementById('filter_status');
+      const filterFinesSelect = document.getElementById('filter_fines');
+      const sortBySelect = document.getElementById('sort_by');
+      const sortOrderSelect = document.getElementById('sort_order');
+  
+      function submitControlsForm() {
+        controlsForm.submit();
+      }
+  
+      filterStatusSelect.addEventListener('change', submitControlsForm);
+      filterFinesSelect.addEventListener('change', submitControlsForm);
+      sortBySelect.addEventListener('change', submitControlsForm);
+      sortOrderSelect.addEventListener('change', submitControlsForm);
+    </script>
   {% endif %}
-  <a href="{{ url_for('index') }}">Back to Home</a>
+{% endblock %}
 
-  <script>
-    const controlsForm = document.getElementById('controlsForm');
-    const filterStatusSelect = document.getElementById('filter_status');
-    const filterFinesSelect = document.getElementById('filter_fines');
-    const sortBySelect = document.getElementById('sort_by');
-    const sortOrderSelect = document.getElementById('sort_order');
-
-    function submitControlsForm() {
-      controlsForm.submit();
-    }
-
-    filterStatusSelect.addEventListener('change', submitControlsForm);
-    filterFinesSelect.addEventListener('change', submitControlsForm);
-    sortBySelect.addEventListener('change', submitControlsForm);
-    sortOrderSelect.addEventListener('change', submitControlsForm);
-  </script>
-
-</body>
-</html>
+  

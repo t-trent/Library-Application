@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+  <h2>View & Update Help Requests</h2>
+  
+  <!-- Filtering and Sorting Controls -->
+<form method="GET" action="{{ url_for('respond_help') }}" id="filterForm" class="controls">
+  <div>
+    <label for="filter_status">Show:</label>
+    <select name="filter_status" id="filter_status" onchange="document.getElementById('filterForm').submit();">
+      <option value="all" {% if filter_status == 'all' %}selected{% endif %}>All Requests</option>
+      <option value="open" {% if filter_status == 'open' %}selected{% endif %}>Open Only</option>
+      <option value="closed" {% if filter_status == 'closed' %}selected{% endif %}>Closed Only</option>
+    </select>
+  </div>
+  
+  <div>
+    <label for="filter_sender">Filter by Sender:</label>
+    <select name="filter_sender" id="filter_sender" onchange="document.getElementById('filterForm').submit();">
+      <option value="">All Senders</option>
+      {% for sender in senders %}
+        <option value="{{ sender['person_id'] }}" {% if filter_sender == sender['person_id']|string %}selected{% endif %}>
+          {{ sender['name'] }} [ID: {{ sender['person_id'] }}]
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <div>
+    <label for="filter_helper">Filter by Helper:</label>
+    <select name="filter_helper" id="filter_helper" onchange="document.getElementById('filterForm').submit();">
+      <option value="">All Helpers</option>
+      {% for helper in helpers %}
+        <option value="{{ helper['person_id'] }}" {% if filter_helper == helper['person_id']|string %}selected{% endif %}>
+          {{ helper['name'] }} ({{ helper['role'] }}) [ID: {{ helper['person_id'] }}]
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <div>
+    <label for="sort_by">Sort by:</label>
+    <select name="sort_by" id="sort_by" onchange="document.getElementById('filterForm').submit();">
+      <option value="request_id" {% if sort_by == 'request_id' %}selected{% endif %}>Request ID</option>
+      <option value="person_id" {% if sort_by == 'person_id' %}selected{% endif %}>Sender ID</option>
+      <option value="person_name" {% if sort_by == 'person_name' %}selected{% endif %}>Sender Name</option>
+      <option value="personnel_id" {% if sort_by == 'personnel_id' %}selected{% endif %}>Helper ID</option>
+      <option value="personnel_name" {% if sort_by == 'personnel_name' %}selected{% endif %}>Helper Name</option>
+      <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status</option>
+    </select>
+  </div>
+  
+  <div>
+    <label for="sort_order">Order:</label>
+    <select name="sort_order" id="sort_order" onchange="document.getElementById('filterForm').submit();">
+      <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+      <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+    </select>
+  </div>
+</form>
+
+
+  {% if requests_list|length == 0 %}
+    <p>No help requests found matching your criteria.</p>
+  {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th>Request ID</th>
+          <th>Sender ID</th>
+          <th>Sender Name</th>
+          <th>Helper</th>
+          <th>Message</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests_list %}
+          <tr>
+            <form method="POST" action="{{ url_for('respond_help') }}">
+              <input type="hidden" name="request_id" value="{{ req['request_id'] }}">
+              <td>{{ req['request_id'] }}</td>
+              <td>{{ req['person_id'] }}</td>
+              <td>{{ req['person_name'] }}</td>
+              <td>
+                <select name="personnel_id" onchange="this.form.submit();">
+                  <option value="" {% if not req['personnel_id'] %}selected{% endif %}>None</option>
+                  {% for person in personnel_options %}
+                    <option value="{{ person['person_id'] }}" {% if req['personnel_id'] and req['personnel_id']|string == person['person_id']|string %}selected{% endif %}>
+                      {{ person['name'] }} ({{ person['role'] }}) [ID: {{ person['person_id'] }}]
+                    </option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td>{{ req['message'] }}</td>
+              <td>
+                <select name="status" onchange="this.form.submit();">
+                  <option value="0" {% if req['status'] == 0 %}selected{% endif %}>Open</option>
+                  <option value="1" {% if req['status'] == 1 %}selected{% endif %}>Closed</option>
+                </select>
+              </td>
+            </form>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  
+{% endblock %}

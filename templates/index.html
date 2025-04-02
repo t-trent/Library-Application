@@ -1,34 +1,32 @@
-<!-- templates/index.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Library Application</title>
-</head>
-<body>
-    <h1>Welcome to the Library</h1>
-    <ul>
-        <li><a href="{{ url_for('find_item') }}">Find an Item</a></li>
-        <li><a href="{{ url_for('borrow_item') }}">Borrow an Item</a></li>
-        <li><a href="{{ url_for('return_item') }}">Return an Item</a></li>
-        <li><a href="{{ url_for('donate_item') }}">Donate an Item</a></li>
-        <li><a href="{{ url_for('find_event') }}">Find an Event</a></li>
-        <li><a href="{{ url_for('register_event') }}">Register for an Event</a></li>
-        <li><a href="{{ url_for('volunteer') }}">Volunteer</a></li>
-        <li><a href="{{ url_for('ask_help') }}">Ask for Help</a></li>
-        <li><a href="{{ url_for('view_borrowings') }}">View Borrowings & Fines</a></li>
-        <li><a href="{{ url_for('view_future_items') }}">View Future Items</a></li>
-        <li><a href="{{ url_for('renew_item') }}">Renew an Item</a></li>
-        <li><a href="{{ url_for('pay_fine') }}">Pay a Fine</a></li>
-    </ul>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+  <h1>Welcome to the Library</h1>
+  <ul>
+    <li><a href="{{ url_for('find_item') }}">Find an Item</a></li>
+    <li><a href="{{ url_for('borrow_item') }}">Borrow an Item</a></li>
+    <li><a href="{{ url_for('return_item') }}">Return an Item</a></li>
+    <li><a href="{{ url_for('donate_item') }}">Donate an Item</a></li>
+    <li><a href="{{ url_for('find_event') }}">Find an Event</a></li>
+    <li><a href="{{ url_for('register_event') }}">Register for an Event</a></li>
+    <li><a href="{{ url_for('volunteer') }}">Volunteer</a></li>
+    <li><a href="{{ url_for('ask_help') }}">Ask for Help</a></li>
+    <li><a href="{{ url_for('view_borrowings') }}">View Borrowings & Fines</a></li>
+    <li><a href="{{ url_for('view_future_items') }}">View Future Items</a></li>
+    <li><a href="{{ url_for('renew_item') }}">Renew an Item</a></li>
+    <li><a href="{{ url_for('pay_fine') }}">Pay a Fine</a></li>
+    <li><a href="{{ url_for('respond_help') }}">View & Update Help Requests</a></li>
+  </ul>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+{% endblock %}

@@ -2,16 +2,16 @@
 CREATE TABLE Items (
     item_id INTEGER PRIMARY KEY,
     item_type TEXT,
-    title TEXT
-    CHECK (item_type IN ['Book', 'DVD', 'Scientific Journal', 'Audiobook', 'Magazine', 'Newspaper', 'eBook', 'CD', 'Record', 'Video Game'])
+    title TEXT,
+    CHECK (item_type IN ('Book', 'DVD', 'Scientific Journal', 'Audiobook', 'Magazine', 'Newspaper', 'eBook', 'CD', 'Record', 'Video Game'));
 );
 
 -- FutureItems table
 CREATE TABLE FutureItems (
     candidate_item_id INTEGER PRIMARY KEY,
     item_type TEXT,
-    title TEXT
-    CHECK (item_type IN ['Book', 'DVD', 'Scientific Journal', 'Audiobook', 'Magazine', 'Newspaper', 'eBook', 'CD', 'Record', 'Video Game']
+    title TEXT,
+    CHECK (item_type IN ('Book', 'DVD', 'Scientific Journal', 'Audiobook', 'Magazine', 'Newspaper', 'eBook', 'CD', 'Record', 'Video Game'));
 );
 
 -- People table
@@ -21,7 +21,7 @@ CREATE TABLE People (
 );
 
 -- Borrowings table
-CREATE TABLE BorrowingsNew (
+CREATE TABLE Borrowings (
     borrowing_id INTEGER PRIMARY KEY,
     item_id INTEGER,
     person_id INTEGER,
@@ -31,8 +31,8 @@ CREATE TABLE BorrowingsNew (
     return_date TEXT,
     FOREIGN KEY (item_id) REFERENCES Items(item_id),
     FOREIGN KEY (person_id) REFERENCES People(person_id),
-    FOREIGN KEY (personnel_id) REFERENCES Personnel(person_id)
-    CHECK (return_date IS NULL OR return_date >= borrow_date) -- Ensure return_date is after borrow_date
+    FOREIGN KEY (personnel_id) REFERENCES Personnel(person_id),
+    CHECK (return_date IS NULL OR return_date >= borrow_date), -- Ensure return_date is after borrow_date
     CHECK (due_date IS NULL OR due_date >= borrow_date) -- Ensure due_date is after borrow_date
 );
 
@@ -55,8 +55,8 @@ CREATE TABLE Fines (
     borrowing_id INTEGER,
     amount REAL,
     paid_status INTEGER,
-    FOREIGN KEY (borrowing_id) REFERENCES Borrowings(borrowing_id)
-    CHECK (paid_status IN (0, 1)) -- 0 for unpaid, 1 for paid
+    FOREIGN KEY (borrowing_id) REFERENCES Borrowings(borrowing_id),
+    CHECK (paid_status IN (0, 1)), -- 0 for unpaid, 1 for paid
     CHECK (amount IN (5, 15, 50)) -- Fixed fine amounts
 );
 
@@ -113,8 +113,8 @@ CREATE TABLE PersonAudiences (
 CREATE TABLE Personnel (
     person_id INTEGER PRIMARY KEY,
     role TEXT,
-    FOREIGN KEY (person_id) REFERENCES People(person_id)
-    CHECK (role IN ['Librarian', 'Assistant Librarian', 'Volunteer']) -- Ensure role is one of the specified values
+    FOREIGN KEY (person_id) REFERENCES People(person_id),
+    CHECK (role IN ('Librarian', 'Assistant Librarian', 'Volunteer')) -- Ensure role is one of the specified values
 );
 
 -- Help requests table
@@ -122,9 +122,10 @@ CREATE TABLE HelpRequests (
     request_id INTEGER PRIMARY KEY,
     person_id INTEGER,
     personnel_id INTEGER,
+    message TEXT,
     status INTEGER,
-    FOREIGN KEY (person_id) REFERENCES People(person_id)
-    FOREIGN KEY (personnel_id) REFERENCES Personnel(person_id)
-    CHECK (status IN [0, 1]) -- Ensure status is either 'Open' or 'Closed' (0 for Open, 1 for Closed)
+    FOREIGN KEY (person_id) REFERENCES People(person_id),
+    FOREIGN KEY (personnel_id) REFERENCES Personnel(person_id),
+    CHECK (status IN (0, 1)) -- Ensure status is either 'Open' or 'Closed' (0 for Open, 1 for Closed)
 );
 

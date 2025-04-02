@@ -1,21 +1,32 @@
-<!-- templates/ask_help.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Ask for Help</title>
-</head>
-<body>
-  <h1>Ask for Help from a Librarian</h1>
-  <form method="POST">
-    <label for="person_id">Your Person ID:</label>
-    <input type="number" id="person_id" name="person_id" required><br>
+{% extends "base.html" %}
 
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+  <h2>Ask for Help from a Librarian</h2>
+
+  {% if success_message %}
+    <div class="message">
+      <p>{{ success_message }}</p>
+    </div>
+  {% endif %}
+  
+  <form method="POST" action="{{ url_for('ask_help') }}">
+    <label for="person_id">Who's Asking for Help?</label>
+    <select id="person_id" name="person_id" required>
+      <option value=""> </option>
+      {% for person in people %}
+        <option value="{{ person['person_id'] }}">
+          {{ person['name'] }} [ID: {{ person['person_id'] }}]
+        </option>
+      {% endfor %}
+    </select>
+    <br><br>
+    
     <label for="question">Your Question:</label><br>
-    <textarea id="question" name="question" rows="4" cols="50" required></textarea><br>
-
+    <textarea id="question" name="question" rows="4" cols="50" required></textarea><br><br>
+    
     <button type="submit">Submit Request</button>
   </form>
-  <a href="{{ url_for('index') }}">Back to Home</a>
-</body>
-</html>
+  
+{% endblock %}

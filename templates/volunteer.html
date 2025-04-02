@@ -1,12 +1,9 @@
-<!-- templates/volunteer.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Volunteer for the Library</title>
-</head>
-<body>
-  <h1>Volunteer for the Library</h1>
+{% extends "base.html" %}
+
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+  <h2>Volunteer for the Library</h2>
   
   {% if message %}
     <div class="message">
@@ -29,7 +26,4 @@
     
     <button type="submit">Volunteer</button>
   </form>
-  
-  <a href="{{ url_for('index') }}">Back to Home</a>
-</body>
-</html>
+{% endblock %}

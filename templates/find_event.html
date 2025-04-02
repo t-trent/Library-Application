@@ -1,16 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Find an Event</title>
-  <style>
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
-    th { background: #eee; }
-  </style>
-</head>
-<body>
-  <h1>Find an Event</h1>
+{% extends "base.html" %}
+
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+  <h2>Find an Event</h2>
   
   <!-- Controls Form -->
   <form method="GET" action="{{ url_for('find_event') }}" id="controlsForm">
@@ -120,6 +113,4 @@
     </table>
   {% endif %}
   
-  <a href="{{ url_for('index') }}">Back to Home</a>
-</body>
-</html>
+{% endblock %}

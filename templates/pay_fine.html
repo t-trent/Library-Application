@@ -1,35 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pay Fine</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
-    </style>
-</head>
-<body>
-    <h1>Pay a Fine</h1>
-    
-    {% if success_message %}
-        <p style="color: green;">{{ success_message }}</p>
+{% extends "base.html" %}
+
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+ <body>
+     <h2>Pay a Fine</h2>
+     
+     {% if success_message %}
+        <div class="message">
+        <p>{{ success_message }}</p>
+        </div>
     {% endif %}
-    
-    <form method="POST" action="/pay_fine">
+    {% if error_message %}
+        <div class="message error">
+        <p>{{ error_message }}</p>
+        </div>
+    {% endif %}
+     
+     <form method="POST" action="/pay_fine">
+        <div>
         <label for="fine_id">Select Fine:</label>
-        <select name="fine_id" required>
-            <option value="" selected disabled>Select a fine...</option>
-            {% for fine in fines %}
-                <option value="{{ fine.fine_id }}">
-                    {{ fine.title }} ({{ fine.item_type }}) - Borrower: {{ fine.borrower_name }} - Fine: ${{ fine.fine_amount }}
-                </option>
-            {% endfor %}
-        </select>
-        
-        <button type="submit">Mark Fine as Paid</button>
-    </form>
-    
-    <a href="/">Back to Home</a>
-</body>
-</html>
+         <select name="fine_id" required>
+             <option value="" selected disabled> </option>
+             {% for fine in fines %}
+                 <option value="{{ fine.fine_id }}">
+                     [Fine ID: {{ fine.fine_id }}] {{ fine.title }} ({{ fine.item_type }}) - Borrower: {{ fine.borrower_name }} - Fine: ${{ fine.fine_amount }}
+                 </option>
+             {% endfor %}
+         </select>
+        </div> 
+         
+         <button type="submit">Pay</button>
+     </form>
+{% endblock %}

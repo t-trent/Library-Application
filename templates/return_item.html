@@ -1,16 +1,18 @@
-<!-- templates/return_item.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Return an Item</title>
-</head>
-<body>
-  <h1>Return an Item</h1>
+{% extends "base.html" %}
+
+{% block title %}Library Application{% endblock %}
+
+{% block content %}
+  <h2>Return an Item</h2>
 
   {% if success_message %}
     <div class="message">
       <p>{{ success_message }}</p>
+    </div>
+  {% endif %}
+  {% if error_message %}
+    <div class="message error">
+      <p>{{ error_message }}</p>
     </div>
   {% endif %}
 
@@ -35,6 +37,4 @@
     <button type="submit">Return</button>
   </form>
   
-  <a href="{{ url_for('index') }}">Back to Home</a>
-</body>
-</html>
+{% endblock %}
