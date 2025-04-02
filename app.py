@@ -548,6 +548,49 @@ def renew_item():
                            librarians=librarians, 
                            success_message=success_message)
 
+#12: Pay a Fine
+@app.route('/pay_fine', methods=['GET', 'POST'])
+def pay_fine():
+    conn = get_db_connection()
+    success_message = None  # Initialize success message
+
+    if request.method == 'POST':
+        fine_id = request.form['fine_id']
+
+        try:
+            # Check if a fine exists for the selected fine_id
+            fine = conn.execute("""
+                SELECT amount FROM Fines WHERE fine_id = ? AND paid_status = 0
+            """, (fine_id,)).fetchone()
+
+            if fine:
+                # Mark the fine as paid
+                conn.execute("""
+                    UPDATE Fines
+                    SET paid_status = 1
+                    WHERE fine_id = ?
+                """, (fine_id,))
+                conn.commit()
+
+                success_message = f"Fine of ${fine['amount']} has been successfully paid!"
+
+        except Exception as e:
+            success_message = f"Error: {str(e)}"
+
+    # Get outstanding fines
+    fines = conn.execute("""
+        SELECT F.fine_id, I.title, I.item_type, P.name AS borrower_name, F.amount AS fine_amount
+        FROM Fines F
+        JOIN Borrowings B ON F.borrowing_id = B.borrowing_id
+        JOIN People P ON B.person_id = P.person_id
+        JOIN Items I ON B.item_id = I.item_id
+        WHERE F.paid_status = 0
+    """).fetchall()
+
+    conn.close()
+
+    return render_template('pay_fine.html', fines=fines, success_message=success_message)
+
 
 
 

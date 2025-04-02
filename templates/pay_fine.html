@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay Fine</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
+    </style>
+</head>
+<body>
+    <h1>Pay a Fine</h1>
+    
+    {% if success_message %}
+        <p style="color: green;">{{ success_message }}</p>
+    {% endif %}
+    
+    <form method="POST" action="/pay_fine">
+        <label for="fine_id">Select Fine:</label>
+        <select name="fine_id" required>
+            <option value="" selected disabled>Select a fine...</option>
+            {% for fine in fines %}
+                <option value="{{ fine.fine_id }}">
+                    {{ fine.title }} ({{ fine.item_type }}) - Borrower: {{ fine.borrower_name }} - Fine: ${{ fine.fine_amount }}
+                </option>
+            {% endfor %}
+        </select>
+        
+        <button type="submit">Mark Fine as Paid</button>
+    </form>
+    
+    <a href="/">Back to Home</a>
+</body>
+</html>

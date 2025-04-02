@@ -19,6 +19,7 @@
         <li><a href="{{ url_for('view_borrowings') }}">View Borrowings & Fines</a></li>
         <li><a href="{{ url_for('view_future_items') }}">View Future Items</a></li>
         <li><a href="{{ url_for('renew_item') }}">Renew an Item</a></li>
+        <li><a href="{{ url_for('pay_fine') }}">Pay a Fine</a></li>
     </ul>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
