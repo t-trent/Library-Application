@@ -321,13 +321,17 @@ def ask_help():
 
         # Connect to your SQLite database
         conn = get_db_connection()
-        cursor = conn.cursor()
-        
+        cursor = conn.execute("SELECT MAX(request_id) FROM HelpRequests")
+
+        max_id_row = cursor.fetchone()
+        max_id = max_id_row[0] if max_id_row[0] is not None else 0
+        new_request_id = max_id + 1
+
         # Insert the new help request into the HelpRequests table
         cursor.execute('''
-            INSERT INTO HelpRequests (request_id, status, message)
-            VALUES (?, ?, ?)
-        ''', (person_id, 'pending', question))
+            INSERT INTO HelpRequests (request_id, status, message, person_id)
+            VALUES (?, ?, ?, ?)
+        ''', (new_request_id, 'pending', question, person_id))
 
         # Commit the transaction and close the connection
         conn.commit()
