@@ -382,11 +382,16 @@ def view_borrowings():
             COALESCE(SUM(F.amount), 0) AS total_fine_amount,
             SUM(CASE WHEN F.paid_status = '0' THEN F.amount ELSE 0 END) AS total_unpaid_fines,
             SUM(CASE WHEN F.paid_status = '1' THEN F.amount ELSE 0 END) AS total_paid_fines,
-            GROUP_CONCAT(F.fine_id || '|' || F.amount || '|' || F.paid_status) AS fines
+            GROUP_CONCAT(F.fine_id || '|' || F.amount || '|' || F.paid_status) AS fines,
+            personnel_subquery.personnel_name
         FROM Borrowings B
         JOIN Items I ON B.item_id = I.item_id
         JOIN People P ON B.person_id = P.person_id
         LEFT JOIN Fines F ON B.borrowing_id = F.borrowing_id
+        LEFT JOIN (
+        SELECT person_id, name AS personnel_name
+        FROM People
+    ) AS personnel_subquery ON B.personnel_id = personnel_subquery.person_id
     """
     
     # Build the WHERE clause for return status filtering
