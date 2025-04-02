@@ -318,9 +318,25 @@ def ask_help():
     if request.method == 'POST':
         person_id = request.form['person_id']
         question = request.form['question']
-        # You might record this in a separate table or simply email someone
-        flash('Your help request has been received.')
+
+        # Connect to your SQLite database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Insert the new help request into the HelpRequests table
+        cursor.execute('''
+            INSERT INTO HelpRequests (request_id, status, message)
+            VALUES (?, ?, ?)
+        ''', (person_id, 'pending', question))
+
+        # Commit the transaction and close the connection
+        conn.commit()
+        conn.close()
+
+        # Flash a success message and redirect to the home page
+        flash('Your help request has been received and is pending review.')
         return redirect(url_for('index'))
+    
     return render_template('ask_help.html')
 
 # 9. View all currently borrowed items
