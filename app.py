@@ -473,6 +473,7 @@ def view_future_items():
                            filter_type=filter_type,
                            item_types=item_types)
 
+#11: Renew bookings
 @app.route('/renew_item', methods=['GET', 'POST'])
 def renew_item():
     conn = get_db_connection()
