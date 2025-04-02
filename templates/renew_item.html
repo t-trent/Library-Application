@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Renew an Item</title>
+</head>
+<body>
+  <h1>Renew an Item</h1>
+  
+  {% if success_message %}
+    <div class="message">
+      <p>{{ success_message }}</p>
+    </div>
+  {% endif %}
+  
+  <form method="POST" action="{{ url_for('renew_item') }}">
+    <div>
+      <label for="borrowing_id">Select a Borrowing:</label>
+      <select id="borrowing_id" name="borrowing_id" required>
+        <option value=""> </option>
+        {% for borrowing in borrowings %}
+          <option value="{{ borrowing['borrowing_id'] }}">
+            {{ borrowing['title'] }} ({{ borrowing['item_type'] }}) - Borrowed by {{ borrowing['borrower_name'] }} (Due Date: {{ borrowing['due_date'] }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div>
+      <label for="personnel_id">Librarian (Personnel):</label>
+      <select id="personnel_id" name="personnel_id" required>
+        <option value=""> </option>
+        {% for librarian in librarians %}
+          <option value="{{ librarian['person_id'] }}">
+            {{ librarian['name'] }} [ID: {{ librarian['person_id'] }}] - {{ librarian['role'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label for="new_due_date">New Due Date:</label>
+      <input type="date" id="new_due_date" name="new_due_date" required>
+    </div>
+
+    <button type="submit">Renew</button>
+  </form>
+  
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

@@ -473,6 +473,57 @@ def view_future_items():
                            filter_type=filter_type,
                            item_types=item_types)
 
+@app.route('/renew_item', methods=['GET', 'POST'])
+def renew_item():
+    conn = get_db_connection()
+    success_message = None  # Initialize success message
+
+    if request.method == 'POST':
+        borrowing_id = request.form['borrowing_id']
+        personnel_id = request.form['personnel_id']
+        new_due_date_str = request.form['new_due_date']
+
+        try:
+            # Update the borrowing with new due date and personnel
+            conn.execute('''
+                UPDATE Borrowings
+                SET due_date = ?, personnel_id = ?
+                WHERE borrowing_id = ?
+            ''', (new_due_date_str, personnel_id, borrowing_id))
+            conn.commit()
+
+            success_message = "Renewal successful! The new due date has been set."
+
+        except Exception as e:
+            success_message = f"Error: {str(e)}"
+    
+    # Get current borrowings
+    borrowings = conn.execute("""
+        SELECT B.borrowing_id, I.title, I.item_type, B.person_id AS borrower_id, 
+               P.name AS borrower_name, B.due_date
+        FROM Borrowings B
+        JOIN People P ON B.person_id = P.person_id
+        JOIN Items I ON B.item_id = I.item_id
+        WHERE B.return_date IS NULL
+    """).fetchall()
+
+    # Get available librarians
+    librarians = conn.execute("""
+        SELECT P.person_id, P.name, Pe.role
+        FROM Personnel Pe
+        JOIN People P ON Pe.person_id = P.person_id
+        ORDER BY P.name
+    """).fetchall()
+
+    conn.close()
+
+    return render_template('renew_item.html', 
+                           borrowings=borrowings, 
+                           librarians=librarians, 
+                           success_message=success_message)
+
+
+
 
 
 if __name__ == '__main__':
