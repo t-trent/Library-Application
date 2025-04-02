@@ -24,7 +24,7 @@
              <option value="" selected disabled> </option>
              {% for fine in fines %}
                  <option value="{{ fine.fine_id }}">
-                     [Fine ID: {{ fine.fine_id }}] {{ fine.title }} ({{ fine.item_type }}) - Borrower: {{ fine.borrower_name }} - Fine: ${{ fine.fine_amount }}
+                     [Fine ID: {{ fine.fine_id }}] {{ fine.title }} ({{ fine.item_type }}) - Borrower: {{ fine.borrower_name }} [ID: {{ fine.borrower_id }}] - Amount: ${{ "%.2f"|format(fine.fine_amount) }}
                  </option>
              {% endfor %}
          </select>
