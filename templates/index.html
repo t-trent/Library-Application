@@ -16,6 +16,8 @@
         <li><a href="{{ url_for('register_event') }}">Register for an Event</a></li>
         <li><a href="{{ url_for('volunteer') }}">Volunteer</a></li>
         <li><a href="{{ url_for('ask_help') }}">Ask for Help</a></li>
+        <li><a href="{{ url_for('view_borrowings') }}">View Borrowings & Fines</a></li>
+        <li><a href="{{ url_for('view_future_items') }}">View Future Items</a></li>
     </ul>
     {% with messages = get_flashed_messages() %}
       {% if messages %}

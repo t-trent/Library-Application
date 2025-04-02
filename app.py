@@ -171,56 +171,51 @@ def donate_item():
         title = request.form['title']
         
         conn = get_db_connection()
-        # Get the current highest item_id from the Items table
-        cursor = conn.execute("SELECT MAX(item_id) FROM Items")
+        # Get the current highest candidate_item_id from the FutureItems table
+        cursor = conn.execute("SELECT MAX(candidate_item_id) FROM FutureItems")
         max_id_row = cursor.fetchone()
         max_id = max_id_row[0] if max_id_row[0] is not None else 0
-        new_item_id = max_id + 1
+        new_candidate_item_id = max_id + 1
 
-        # Insert the new item with the new item_id
-        conn.execute('INSERT INTO Items (item_id, item_type, title) VALUES (?, ?, ?)',
-                     (new_item_id, item_type, title))
+        # Insert the new donated item into the FutureItems table
+        conn.execute('INSERT INTO FutureItems (candidate_item_id, item_type, title) VALUES (?, ?, ?)',
+                     (new_candidate_item_id, item_type, title))
         conn.commit()
         conn.close()
         
-        success_message = f"Item '{title}' (ID: {new_item_id}) of type '{item_type}' donated successfully."
+        success_message = f"Future item '{title}' (Candidate ID: {new_candidate_item_id}) of type '{item_type}' donated successfully."
     
     return render_template('donate_item.html', item_types=item_types, success_message=success_message)
 
-
+# 5. Find an event in the library
 @app.route('/find_event', methods=['GET'])
 def find_event():
-    # Get query parameters (with defaults)
-    search_term    = request.args.get('search_term', '')
+    # Get parameters from query string (with defaults)
+    search_term     = request.args.get('search_term', '')
     filter_audience = request.args.get('filter_audience', '')
-    filter_room    = request.args.get('filter_room', '')
-    sort_by        = request.args.get('sort_by', 'date_asc')  # default sort: date ascending
+    filter_room     = request.args.get('filter_room', '')
     filter_attendee = request.args.get('filter_attendee', '')
-    
-    # Allowed filter options for audiences and social rooms
-    audience_types_list = ["Seniors", "Teens", "Children", "Young Adults", "Families", 
-                             "Academics", "Hobbyists", "Students", "Artists", "Tech Enthusiasts"]
-    social_room_names = ["Maple Hall", "Sunset Room", "Heritage Lounge", "Cedar Commons", 
-                         "The Learning Loft", "Innovation Nook", "Oak Room", "Skyview Gallery", 
-                         "Community Studio", "The Nest"]
-    
-    # Query for all People for the attendee dropdown
+    sort_by         = request.args.get('sort_by', 'date')   # default sort by date
+    sort_order      = request.args.get('sort_order', 'asc')   # default ascending
+
+    # Get dropdown options from the database
     conn = get_db_connection()
+    audience_types = conn.execute("SELECT DISTINCT audience_type FROM Audiences ORDER BY audience_type").fetchall()
+    social_rooms = conn.execute("SELECT DISTINCT room_name FROM SocialRooms ORDER BY room_name").fetchall()
     people_dropdown = conn.execute("SELECT person_id, name FROM People ORDER BY name").fetchall()
 
-    # Build the base query.
-    # Note: We join Attending (Atnd) and People (Att) to get the names of the attendees.
+    # Build the base query
     query = """
         SELECT 
-            E.event_id, 
-            E.name, 
-            E.event_date, 
-            E.description, 
+            E.event_id,
+            E.name,
+            E.event_date,
+            E.description,
             SR.room_name,
-            GROUP_CONCAT(DISTINCT A.audience_type) as audiences,
-            GROUP_CONCAT(DISTINCT Att.name) as attendees
+            GROUP_CONCAT(DISTINCT A.audience_type) AS audiences,
+            GROUP_CONCAT(DISTINCT Att.name) AS attendees
         FROM Events E
-        LEFT JOIN SocialRooms SR ON E.social_room_id = SR.social_room_id
+        LEFT JOIN SocialRooms SR ON E.room_id = SR.room_id
         LEFT JOIN EventAudiences EA ON E.event_id = EA.event_id
         LEFT JOIN Audiences A ON EA.audience_id = A.audience_id
         LEFT JOIN Attending Atnd ON E.event_id = Atnd.event_id
@@ -228,50 +223,47 @@ def find_event():
         WHERE E.name LIKE ?
     """
     params = ['%' + search_term + '%']
-    
-    # Apply filter for social room if provided
+
+    # Apply filters if provided
     if filter_room:
         query += " AND SR.room_name = ?"
         params.append(filter_room)
-    
-    # Apply filter for audience type if provided
     if filter_audience:
         query += " AND A.audience_type = ?"
         params.append(filter_audience)
-    
-    # Apply filter for a specific attendee: ensure the event has at least one attendee with that person_id.
     if filter_attendee:
         query += " AND EXISTS (SELECT 1 FROM Attending Atnd2 WHERE Atnd2.event_id = E.event_id AND Atnd2.person_id = ?)"
         params.append(filter_attendee)
-    
+
     query += " GROUP BY E.event_id, E.name, E.event_date, E.description, SR.room_name "
-    
-    # Determine sort order based on sort_by parameter
-    if sort_by == "date_asc":
-        query += " ORDER BY E.event_date ASC"
-    elif sort_by == "date_desc":
-        query += " ORDER BY E.event_date DESC"
-    elif sort_by == "title":
-        query += " ORDER BY E.name"
-    elif sort_by == "id":
-        query += " ORDER BY E.event_id"
-    else:
-        query += " ORDER BY E.event_date ASC"  # fallback default
 
-    events = conn.execute(query, params).fetchall()
+    # Map sort_by options to database columns
+    sort_columns = {
+        'id': 'E.event_id',
+        'name': 'E.name',
+        'date': 'E.event_date',
+        'room': 'SR.room_name'
+    }
+    order_column = sort_columns.get(sort_by, 'E.event_date')
+    order_clause = f" ORDER BY {order_column} {sort_order.upper()}"
+
+    full_query = query + order_clause
+    events = conn.execute(full_query, params).fetchall()
     conn.close()
-    
-    return render_template('find_event.html',
-                           events=events,
-                           search_term=search_term,
-                           filter_audience=filter_audience,
-                           filter_room=filter_room,
-                           sort_by=sort_by,
-                           filter_attendee=filter_attendee,
-                           audience_types_list=audience_types_list,
-                           social_room_names=social_room_names,
-                           people_dropdown=people_dropdown)
 
+    return render_template(
+        'find_event.html',
+        events=events,
+        search_term=search_term,
+        filter_audience=filter_audience,
+        filter_room=filter_room,
+        filter_attendee=filter_attendee,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        audience_types=audience_types,
+        social_rooms=social_rooms,
+        people_dropdown=people_dropdown
+    )
 
 
 
@@ -330,6 +322,158 @@ def ask_help():
         flash('Your help request has been received.')
         return redirect(url_for('index'))
     return render_template('ask_help.html')
+
+# 9. View all currently borrowed items
+@app.route('/view_borrowings', methods=['GET'])
+def view_borrowings():
+    conn = get_db_connection()
+
+    # Get sorting and filtering parameters from the query string
+    sort_by = request.args.get('sort_by', 'title') 
+    sort_order = request.args.get('sort_order', 'asc')
+    filter_status = request.args.get('filter_status', 'all')
+    filter_fines = request.args.get('filter_fines', 'all')  # New fine filter parameter
+
+    allowed_filters = ['all', 'returned', 'not_returned']
+    if filter_status not in allowed_filters:
+        filter_status = 'all'
+
+    # Define the sortable columns and their display names
+    sortable_columns_db = {
+        'borrowing_id': 'B.borrowing_id',
+        'item_id': 'B.item_id',
+        'title': 'I.title',
+        'item_type': 'I.item_type',
+        'person_id': 'B.person_id',
+        'borrower_name': 'P.name',
+        'borrow_date': 'B.borrow_date',
+        'fine_amount': 'total_fine_amount'
+    }
+    sortable_options_display = {
+        'borrowing_id': 'Borrowing ID',
+        'item_id': 'Item ID',
+        'title': 'Title',
+        'item_type': 'Type',
+        'person_id': 'Borrower ID',
+        'borrower_name': 'Borrower Name',
+        'borrow_date': 'Borrow Date',
+        'fine_amount': 'Total Fine Amount'
+    }
+
+    if sort_by not in sortable_columns_db:
+        sort_by = 'title'
+    if sort_order.lower() not in ['asc', 'desc']:
+        sort_order = 'asc'
+    sql_sort_column = sortable_columns_db[sort_by]
+
+    # Build the base query with additional aggregates for fines
+    base_query = """
+        SELECT 
+            B.borrowing_id, 
+            B.item_id, 
+            I.title, 
+            I.item_type, 
+            B.person_id, 
+            P.name AS borrower_name, 
+            B.borrow_date, 
+            B.due_date, 
+            COALESCE(B.return_date, 'Not Returned') AS return_date_display,
+            B.return_date,
+            COALESCE(SUM(F.amount), 0) AS total_fine_amount,
+            SUM(CASE WHEN F.paid_status = '0' THEN F.amount ELSE 0 END) AS total_unpaid_fines,
+            SUM(CASE WHEN F.paid_status = '1' THEN F.amount ELSE 0 END) AS total_paid_fines,
+            GROUP_CONCAT(F.fine_id || '|' || F.amount || '|' || F.paid_status) AS fines
+        FROM Borrowings B
+        JOIN Items I ON B.item_id = I.item_id
+        JOIN People P ON B.person_id = P.person_id
+        LEFT JOIN Fines F ON B.borrowing_id = F.borrowing_id
+    """
+    
+    # Build the WHERE clause for return status filtering
+    where_clause = ""
+    if filter_status == 'returned':
+        where_clause = "WHERE B.return_date IS NOT NULL"
+    elif filter_status == 'not_returned':
+        where_clause = "WHERE B.return_date IS NULL"
+    
+    # Grouping clause (must include all non-aggregated columns)
+    group_clause = """
+        GROUP BY 
+            B.borrowing_id, B.item_id, I.title, I.item_type, 
+            B.person_id, P.name, B.borrow_date, B.due_date, B.return_date
+    """
+    
+    # Build a HAVING clause for fines filtering
+    having_clause = "HAVING 1=1"
+    if filter_fines == 'with_fines':
+        having_clause += " AND total_fine_amount > 0"
+    elif filter_fines == 'unpaid_fines':
+        having_clause += " AND total_unpaid_fines > 0"
+    elif filter_fines == 'paid_fines':
+        having_clause += " AND total_paid_fines > 0"
+    
+    # Build the ORDER BY clause based on sort parameters
+    order_clause = f"ORDER BY {sql_sort_column} {sort_order.upper()}"
+
+    # Combine all clauses into one query
+    query = f"{base_query} {where_clause} {group_clause} {having_clause} {order_clause}"
+    
+    borrowings = conn.execute(query).fetchall()
+    conn.close()
+
+    return render_template(
+        'view_borrowings.html', 
+        borrowings=borrowings,
+        sortable_options=sortable_options_display,
+        current_sort_by=sort_by,
+        current_sort_order=sort_order,
+        current_filter_status=filter_status,
+        current_filter_fines=filter_fines  # Pass the current fines filter to the template
+    )
+
+# 10. View future items
+@app.route('/view_future_items', methods=['GET'])
+def view_future_items():
+    # Define allowed item types (adjust as needed)
+    item_types = ['Book', 'DVD', 'Scientific Journal', 'Audiobook', 'Magazine', 'Newspaper', 'eBook', 'CD', 'Record', 'Video Game']
+    
+    # Get parameters from the URL query string
+    search_term = request.args.get('search_term', '')
+    sort_by = request.args.get('sort_by', 'title')  # default sort by title
+    filter_type = request.args.get('filter_type', '')
+    
+    # Map the sort_by values to actual database columns safely
+    order_column = {
+        'id': 'candidate_item_id',
+        'title': 'title',
+        'item_type': 'item_type'
+    }.get(sort_by, 'title')
+    
+    # Build filtering clause and parameters for the query
+    filter_clause = ""
+    params = ['%' + search_term + '%']
+    if filter_type:
+        filter_clause = " AND item_type = ?"
+        params.append(filter_type)
+    
+    query = f"""
+        SELECT * FROM FutureItems
+        WHERE title LIKE ? {filter_clause}
+        ORDER BY {order_column}
+    """
+    
+    conn = get_db_connection()
+    future_items = conn.execute(query, params).fetchall()
+    conn.close()
+    
+    return render_template('view_future_items.html',
+                           future_items=future_items,
+                           search_term=search_term,
+                           sort_by=sort_by,
+                           filter_type=filter_type,
+                           item_types=item_types)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

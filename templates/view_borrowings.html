@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Borrowings</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
+  </style>
+</head>
+<body>
+  <h1>View Borrowings</h1>
+
+  <form method="GET" action="{{ url_for('view_borrowings') }}" class="controls-form" id="controlsForm"> 
+    <label for="filter_status">Show:</label>
+    <select name="filter_status" id="filter_status">
+      <option value="all" {% if current_filter_status == 'all' %}selected{% endif %}>All Borrowings</option>
+      <option value="returned" {% if current_filter_status == 'returned' %}selected{% endif %}>Returned Only</option>
+      <option value="not_returned" {% if current_filter_status == 'not_returned' %}selected{% endif %}>Not Returned Only</option>
+    </select>
+
+    <label for="filter_fines">Fine Filter:</label>
+    <select name="filter_fines" id="filter_fines">
+      <option value="all" {% if current_filter_fines == 'all' %}selected{% endif %}>All Borrowings</option>
+      <option value="with_fines" {% if current_filter_fines == 'with_fines' %}selected{% endif %}>With Fines</option>
+      <option value="unpaid_fines" {% if current_filter_fines == 'unpaid_fines' %}selected{% endif %}>Unpaid Fines</option>
+      <option value="paid_fines" {% if current_filter_fines == 'paid_fines' %}selected{% endif %}>Paid Fines</option>
+    </select>
+
+    <label for="sort_by">Sort by:</label>
+    <select name="sort_by" id="sort_by">
+      {% for key, display_text in sortable_options.items() %}
+        <option value="{{ key }}" {% if key == current_sort_by %}selected{% endif %}>
+          {{ display_text }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="sort_order">Order:</label>
+    <select name="sort_order" id="sort_order">
+      <option value="asc" {% if current_sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+      <option value="desc" {% if current_sort_order == 'desc' %}selected{% endif %}>Descending</option>
+    </select>
+  </form>
+
+  {% if borrowings|length == 0 %}
+    <p>No borrowings found matching your criteria.</p>
+  {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th>Borrowing ID</th>
+          <th>Item ID</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Borrower ID</th>
+          <th>Borrower Name</th>
+          <th>Borrow Date</th>
+          <th>Due Date</th> 
+          <th>Return Date</th>
+          <th>Fines</th> 
+        </tr>
+      </thead>
+      <tbody>
+        {% for borrowing in borrowings %}
+          <tr>
+            <td>{{ borrowing['borrowing_id'] }}</td>
+            <td>{{ borrowing['item_id'] }}</td>
+            <td>{{ borrowing['title'] }}</td>
+            <td>{{ borrowing['item_type'] }}</td>
+            <td>{{ borrowing['person_id'] }}</td>
+            <td>{{ borrowing['borrower_name'] }}</td>
+            <td>{{ borrowing['borrow_date'] }}</td>
+            <td>{{ borrowing['due_date'] }}</td>
+            <td>{{ borrowing['return_date_display'] }}</td>
+            <td>
+                {% if borrowing['fines'] %} 
+                {% set fines_list = borrowing['fines'].split(',') %}
+                <ul>
+                  {% for fine in fines_list %}
+                    {% set parts = fine.split('|') %}
+                    {% if parts|length >= 3 %} 
+                      {% set paid_text = 'Yes' if parts[2]|trim == '1' else 'No' %}
+                      <li>
+                        ID: {{ parts[0] }}, Amount: {{ parts[1] }}, Paid: {{ paid_text }}
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                </ul>
+              {% else %}
+                None
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  <a href="{{ url_for('index') }}">Back to Home</a>
+
+  <script>
+    const controlsForm = document.getElementById('controlsForm');
+    const filterStatusSelect = document.getElementById('filter_status');
+    const filterFinesSelect = document.getElementById('filter_fines');
+    const sortBySelect = document.getElementById('sort_by');
+    const sortOrderSelect = document.getElementById('sort_order');
+
+    function submitControlsForm() {
+      controlsForm.submit();
+    }
+
+    filterStatusSelect.addEventListener('change', submitControlsForm);
+    filterFinesSelect.addEventListener('change', submitControlsForm);
+    sortBySelect.addEventListener('change', submitControlsForm);
+    sortOrderSelect.addEventListener('change', submitControlsForm);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Future Items</title>
+</head>
+<body>
+  <h1>View Future Items</h1>
+  
+  <!-- Search Form -->
+  <form method="GET" action="{{ url_for('view_future_items') }}">
+    <label for="search_term">Search by Title:</label>
+    <input type="text" id="search_term" name="search_term" value="{{ search_term|default('') }}">
+    <!-- Preserve current sort/filter values -->
+    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+    <input type="hidden" name="filter_type" value="{{ filter_type }}">
+    <button type="submit">Search</button>
+  </form>
+  
+  <!-- Sort and Filter Form -->
+  <form method="GET" action="{{ url_for('view_future_items') }}" id="sort-filter-form">
+    <!-- Carry over the current search term -->
+    <input type="hidden" name="search_term" value="{{ search_term|default('') }}">
+    
+    <label for="sort_by">Sort by:</label>
+    <select id="sort_by" name="sort_by" onchange="document.getElementById('sort-filter-form').submit();">
+      <option value="id" {% if sort_by == 'id' %}selected{% endif %}>ID</option>
+      <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title</option>
+      <option value="item_type" {% if sort_by == 'item_type' %}selected{% endif %}>Item Type</option>
+    </select>
+    
+    <label for="filter_type">Filter by Item Type:</label>
+    <select id="filter_type" name="filter_type" onchange="document.getElementById('sort-filter-form').submit();">
+      <option value="" {% if filter_type == '' %}selected{% endif %}>All</option>
+      {% for type in item_types %}
+        <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  
+  <h2>Future Items</h2>
+  {% if future_items|length == 0 %}
+    <p>No future items found.</p>
+  {% else %}
+    <ul>
+      {% for item in future_items %}
+        <li>
+          ID: {{ item['candidate_item_id'] }}, 
+          Title: {{ item['title'] }}, 
+          Item Type: {{ item['item_type'] }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  
+  <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

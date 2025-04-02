@@ -1,15 +1,19 @@
-<!-- templates/find_event.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Find an Event</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
+    th { background: #eee; }
+  </style>
 </head>
 <body>
   <h1>Find an Event</h1>
   
-  <!-- Search, Filter, and Sort Form -->
-  <form method="GET" action="{{ url_for('find_event') }}">
+  <!-- Controls Form -->
+  <form method="GET" action="{{ url_for('find_event') }}" id="controlsForm">
     <div>
       <label for="search_term">Search by Event Name:</label>
       <input type="text" id="search_term" name="search_term" value="{{ search_term|default('') }}">
@@ -17,27 +21,31 @@
     
     <div>
       <label for="filter_audience">Filter by Audience:</label>
-      <select id="filter_audience" name="filter_audience" onchange="this.form.submit()">
+      <select id="filter_audience" name="filter_audience" onchange="document.getElementById('controlsForm').submit();">
         <option value="">All Audiences</option>
-        {% for audience in audience_types_list %}
-          <option value="{{ audience }}" {% if filter_audience == audience %}selected{% endif %}>{{ audience }}</option>
+        {% for row in audience_types %}
+          <option value="{{ row['audience_type'] }}" {% if filter_audience == row['audience_type'] %}selected{% endif %}>
+            {{ row['audience_type'] }}
+          </option>
         {% endfor %}
       </select>
     </div>
     
     <div>
       <label for="filter_room">Filter by Social Room:</label>
-      <select id="filter_room" name="filter_room" onchange="this.form.submit()">
+      <select id="filter_room" name="filter_room" onchange="document.getElementById('controlsForm').submit();">
         <option value="">All Rooms</option>
-        {% for room in social_room_names %}
-          <option value="{{ room }}" {% if filter_room == room %}selected{% endif %}>{{ room }}</option>
+        {% for row in social_rooms %}
+          <option value="{{ row['room_name'] }}" {% if filter_room == row['room_name'] %}selected{% endif %}>
+            {{ row['room_name'] }}
+          </option>
         {% endfor %}
       </select>
     </div>
     
     <div>
       <label for="filter_attendee">Filter by Attendee:</label>
-      <select id="filter_attendee" name="filter_attendee" onchange="this.form.submit()">
+      <select id="filter_attendee" name="filter_attendee" onchange="document.getElementById('controlsForm').submit();">
         <option value="">All Attendees</option>
         {% for person in people_dropdown %}
           <option value="{{ person['person_id'] }}" {% if filter_attendee == person['person_id']|string %}selected{% endif %}>
@@ -48,44 +56,68 @@
     </div>
     
     <div>
-      <label for="sort_by">Sort By:</label>
-      <select id="sort_by" name="sort_by" onchange="this.form.submit()">
-        <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date Ascending</option>
-        <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date Descending</option>
-        <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title</option>
-        <option value="id" {% if sort_by == 'id' %}selected{% endif %}>ID</option>
+      <label for="sort_by">Sort by:</label>
+      <select id="sort_by" name="sort_by" onchange="document.getElementById('controlsForm').submit();">
+        <option value="id" {% if sort_by == 'id' %}selected{% endif %}>Event ID</option>
+        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+        <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+        <option value="room" {% if sort_by == 'room' %}selected{% endif %}>Social Room</option>
       </select>
     </div>
     
-    <!-- Optional: include a submit button if needed -->
+    <div>
+      <label for="sort_order">Order:</label>
+      <select id="sort_order" name="sort_order" onchange="document.getElementById('controlsForm').submit();">
+        <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+        <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+      </select>
+    </div>
+    
+    <!-- Optional submit button -->
     <button type="submit">Search</button>
   </form>
   
-  {% if events is not none %}
-    {% if search_term or filter_audience or filter_room or filter_attendee %}
-      <h2>Search Results</h2>
-    {% else %}
-      <h2>All Events</h2>
-    {% endif %}
-    
-    {% if events|length == 0 %}
-      <p>No events found.</p>
-    {% else %}
-      <ul>
+  {% if events|length == 0 %}
+    <p>No events found matching your criteria.</p>
+  {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th>Event ID</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Social Room</th>
+          <th>Audiences</th>
+          <th>Attendees</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for event in events %}
-          <li>
-            <strong>ID:</strong> {{ event['event_id'] }}<br>
-            <strong>Name:</strong> {{ event['name'] }}<br>
-            <strong>Description:</strong> {{ event['description'] }}<br>
-            <strong>Date:</strong> {{ event['event_date'] }}<br>
-            <strong>Social Room:</strong> {{ event['room_name'] if event['room_name'] else "N/A" }}<br>
-            <strong>Audiences:</strong> {{ event['audiences']|replace(',', ', ') if event['audiences'] else "None" }}<br>
-            <strong>Attendees:</strong> {{ event['attendees']|replace(',', ', ') if event['attendees'] else "None" }}
-          </li>
-          <br>
+          <tr>
+            <td>{{ event['event_id'] }}</td>
+            <td>{{ event['name'] }}</td>
+            <td>{{ event['description'] }}</td>
+            <td>{{ event['event_date'] }}</td>
+            <td>{{ event['room_name'] if event['room_name'] else "N/A" }}</td>
+            <td>
+              {% if event['audiences'] %}
+                {{ event['audiences']|replace(',', ', ') }}
+              {% else %}
+                None
+              {% endif %}
+            </td>
+            <td>
+              {% if event['attendees'] %}
+                {{ event['attendees']|replace(',', ', ') }}
+              {% else %}
+                None
+              {% endif %}
+            </td>
+          </tr>
         {% endfor %}
-      </ul>
-    {% endif %}
+      </tbody>
+    </table>
   {% endif %}
   
   <a href="{{ url_for('index') }}">Back to Home</a>
