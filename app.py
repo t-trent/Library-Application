@@ -729,6 +729,117 @@ def respond_help():
                            helpers=helpers,
                            personnel_options=personnel_options)
 
+# Add a New Person
+@app.route('/add_person', methods=['GET', 'POST'])
+def add_person():
+    conn = get_db_connection()
+    success_message = None
+    error_message = None
+    try:
+        if request.method == 'POST':
+            try:
+                name = request.form.get('name').strip()
+                selected_audiences = request.form.getlist('audiences')
+                # Get the next available person_id.
+                cursor = conn.execute("SELECT MAX(person_id) FROM People")
+                max_id_row = cursor.fetchone()
+                max_id = max_id_row[0] if max_id_row[0] is not None else 0
+                new_person_id = max_id + 1
+                conn.execute("INSERT INTO People (person_id, name) VALUES (?, ?)", (new_person_id, name))
+                for aud in selected_audiences:
+                    conn.execute("INSERT INTO PersonAudiences (person_id, audience_id) VALUES (?, ?)", (new_person_id, aud))
+                conn.commit()
+                success_message = "New person added successfully."
+            except Exception as e:
+                conn.rollback()
+                error_message = "An error occurred. Make sure the person does not already exist."
+    except Exception as outer_e:
+        error_message = "An error occurred. Make sure the person does not already exist."
+    finally:
+        # Fetch all audiences for the form.
+        all_audiences = conn.execute("SELECT audience_id, audience_type FROM Audiences ORDER BY audience_type").fetchall()
+        conn.close()
+    return render_template('add_person.html',
+                           all_audiences=all_audiences,
+                           success_message=success_message,
+                           error_message=error_message)
+
+
+# Manage People
+@app.route('/manage_people', methods=['GET', 'POST'])
+def manage_people():
+    conn = get_db_connection()
+    success_message = None
+    error_message = None
+    try:
+        if request.method == 'POST':
+            # We only handle update actions on this route.
+            action = request.form.get('action')
+            if action == 'update':
+                try:
+                    person_id = request.form.get('person_id')
+                    name = request.form.get('name').strip()
+                    selected_audiences = request.form.getlist('audiences')
+                    conn.execute("UPDATE People SET name = ? WHERE person_id = ?", (name, person_id))
+                    # Remove all current audience associations for this person.
+                    conn.execute("DELETE FROM PersonAudiences WHERE person_id = ?", (person_id,))
+                    for aud in selected_audiences:
+                        conn.execute("INSERT INTO PersonAudiences (person_id, audience_id) VALUES (?, ?)",
+                                     (person_id, aud))
+                    conn.commit()
+                    success_message = "Person updated successfully."
+                except Exception as e:
+                    conn.rollback()
+                    error_message = "Error updating person."
+    except Exception as outer_e:
+        error_message = "Error updating person."
+    finally:
+        # --- Filtering and Sorting (GET) ---
+        filter_audience = request.args.get('filter_audience', '')
+        sort_by = request.args.get('sort_by', 'name')  # Default sort by name.
+        sort_order = request.args.get('sort_order', 'asc')
+        # Map sort options to actual columns.
+        sort_columns = {
+            'person_id': 'P.person_id',
+            'name': 'P.name'
+        }
+        order_column = sort_columns.get(sort_by, 'P.name')
+        order_clause = f" ORDER BY {order_column} {sort_order.upper()}"
+
+        base_query = """
+            SELECT 
+                P.person_id,
+                P.name,
+                GROUP_CONCAT(A.audience_id) AS audience_ids,
+                GROUP_CONCAT(A.audience_type, ', ') AS audiences
+            FROM People P
+            LEFT JOIN PersonAudiences PA ON P.person_id = PA.person_id
+            LEFT JOIN Audiences A ON PA.audience_id = A.audience_id
+        """
+        where_clause = ""
+        params = []
+        if filter_audience:
+            where_clause = " WHERE P.person_id IN (SELECT person_id FROM PersonAudiences WHERE audience_id = ?)"
+            params.append(filter_audience)
+        
+        group_clause = " GROUP BY P.person_id, P.name "
+        full_query = base_query + where_clause + group_clause + order_clause
+        people_list = conn.execute(full_query, params).fetchall()
+        
+        # Get all audiences for dropdown options.
+        all_audiences = conn.execute("SELECT audience_id, audience_type FROM Audiences ORDER BY audience_type").fetchall()
+        conn.close()
+    return render_template('manage_people.html',
+                           people_list=people_list,
+                           all_audiences=all_audiences,
+                           filter_audience=filter_audience,
+                           sort_by=sort_by,
+                           sort_order=sort_order,
+                           success_message=success_message,
+                           error_message=error_message)
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

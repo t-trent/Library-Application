@@ -18,6 +18,8 @@
     <li><a href="{{ url_for('renew_item') }}">Renew an Item</a></li>
     <li><a href="{{ url_for('pay_fine') }}">Pay a Fine</a></li>
     <li><a href="{{ url_for('respond_help') }}">View & Update Help Requests</a></li>
+    <li><a href="{{ url_for('add_person') }}">Add a New Person</a></li>
+    <li><a href="{{ url_for('manage_people') }}">Manage People</a></li>
   </ul>
 
   {% with messages = get_flashed_messages() %}

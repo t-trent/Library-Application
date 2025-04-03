@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Manage People{% endblock %}
+
+{% block content %}
+  <h2>Manage People</h2>
+  
+  {% if success_message %}
+    <div class="message success">
+      <p>{{ success_message }}</p>
+    </div>
+  {% endif %}
+  {% if error_message %}
+    <div class="message error">
+      <p>{{ error_message }}</p>
+    </div>
+  {% endif %}
+
+  <!-- Filtering and Sorting Controls -->
+  <form method="GET" action="{{ url_for('manage_people') }}" id="filterForm" class="controls">
+    <div>
+      <label for="filter_audience">Filter by Audience:</label>
+      <select name="filter_audience" id="filter_audience" onchange="document.getElementById('filterForm').submit();">
+        <option value="" {% if filter_audience == '' %}selected{% endif %}>All Audiences</option>
+        {% for aud in all_audiences %}
+          <option value="{{ aud['audience_id'] }}" {% if filter_audience == aud['audience_id']|string %}selected{% endif %}>
+            {{ aud['audience_type'] }} [ID: {{ aud['audience_id'] }}]
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="sort_by">Sort by:</label>
+      <select name="sort_by" id="sort_by" onchange="document.getElementById('filterForm').submit();">
+        <option value="person_id" {% if sort_by == 'person_id' %}selected{% endif %}>Person ID</option>
+        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+      </select>
+    </div>
+    <div>
+      <label for="sort_order">Order:</label>
+      <select name="sort_order" id="sort_order" onchange="document.getElementById('filterForm').submit();">
+        <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+        <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+      </select>
+    </div>
+  </form>
+
+  <!-- Table of People -->
+  <table>
+    <thead>
+      <tr>
+        <th>Person ID</th>
+        <th>Name</th>
+        <th>Audiences</th>
+        <th>Update Audiences</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in people_list %}
+        <tr>
+          <!-- Each row is a form to update that person -->
+          <form method="POST" action="{{ url_for('manage_people') }}">
+            <input type="hidden" name="action" value="update">
+            <input type="hidden" name="person_id" value="{{ person['person_id'] }}">
+            <td>{{ person['person_id'] }}</td>
+            <td>
+              <div><input type="text" name="name" value="{{ person['name'] }}"></div>
+            </td>
+            <td>
+              {% if person['audiences'] %}
+                {{ person['audiences'] }}
+              {% else %}
+                None
+              {% endif %}
+            </td>
+            <td>
+              {% set selected_audiences = person['audience_ids'].split(',') if person['audience_ids'] else [] %}
+              <div class="checkbox-group">
+                {% for aud in all_audiences %}
+                  <label>
+                    <input type="checkbox" name="audiences" value="{{ aud['audience_id'] }}"
+                      {% if aud['audience_id']|string in selected_audiences %}checked{% endif %}>
+                    {{ aud['audience_type'] }} [ID: {{ aud['audience_id'] }}]
+                  </label>
+                {% endfor %}
+              </div>
+              <div><button type="submit">Update</button></div>
+            </td>
+          </form>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
